@@ -32,6 +32,7 @@ Just run :Readup \<plugin_name>.
 - \[ \] Get the plugin name from the current cursor.
 - \[ \] if README.md doesn't exist, try README.markdown, README.txt, etc.
 - \[ \] if README.md doesn't exist, try to download it from github.
+- \[ \] Add tests.
 
 ## License
 
