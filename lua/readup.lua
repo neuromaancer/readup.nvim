@@ -73,7 +73,6 @@ function M.setup_command()
 end
 
 function M.setup()
-	-- Setup or initialization code for your plugin
 	M.setup_command()
 end
 
