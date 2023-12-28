@@ -14,6 +14,19 @@ local function parse_plugin_name(str)
 	end
 end
 
+function M.readup_from_cursor()
+	local current_line = vim.api.nvim_get_current_line()
+	local plugin_name = parse_plugin_name(current_line)
+	if plugin_name then
+		M.readup(plugin_name)
+	else
+		vim.notify(
+			"No valid plugin name found on the current line",
+			vim.log.levels.INFO
+		)
+	end
+end
+
 -- Function to get a list of installed plugins
 local function get_installed_plugins()
 	local plugins = {}
@@ -70,6 +83,7 @@ function M.setup_command()
 		nargs = 1,
 		complete = M.complete_plugin_names,
 	})
+	vim.api.nvim_create_user_command("ReadupCursor", M.readup_from_cursor, {})
 end
 
 function M.setup()
