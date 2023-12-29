@@ -22,7 +22,11 @@ Lazy.nvim:
 {
     "neuromaancer/readup.nvim",
     cmd = "Readup",
-    config = true
+    config = function()
+        require("readup").setup({
+        plugin_manager = "lazy" -- or 'packer', etc.
+        })
+    end
 }
 ```
 
