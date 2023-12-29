@@ -3,10 +3,11 @@ local M = {}
 -- Configuration: path to the plugins directory
 local plugins_folder = vim.fn.stdpath("data") .. "/lazy"
 
--- Retrieves a list of installed plugins
+-- Function to retrieve a list of installed plugins
 local function get_installed_plugins()
 	local plugins = {}
-	local p, err = io.popen("ls " .. plugins_folder)
+	local command = "ls " .. plugins_folder
+	local p, err = io.popen(command)
 	if not p then
 		vim.notify(
 			"Failed to open plugins directory: " .. err,
@@ -21,7 +22,7 @@ local function get_installed_plugins()
 	return plugins
 end
 
--- Parses the plugin name from a given string
+-- Function to parse the plugin name from a string
 local function parse_plugin_name(str)
 	if str:find("/") then
 		local _, plugin_name = str:match("([^/]+)/([^/]+)")
@@ -31,6 +32,7 @@ local function parse_plugin_name(str)
 	end
 end
 
+-- Function to get the remote URL from the .git/config file
 local function get_git_remote_url(plugin_path)
 	local git_config_path = plugin_path .. "/.git/config"
 	local git_config = io.open(git_config_path, "r")
@@ -44,7 +46,6 @@ local function get_git_remote_url(plugin_path)
 				git_config:close()
 				return line:match("url = (.+)")
 			elseif line:match("%[") then
-				-- Exit the remote origin section when a new section starts
 				is_remote_origin_section = false
 			end
 		end
@@ -54,6 +55,7 @@ local function get_git_remote_url(plugin_path)
 	return nil
 end
 
+-- Function to download the README file
 local function download_readme(plugin_path)
 	local remote_url = get_git_remote_url(plugin_path)
 
@@ -67,7 +69,7 @@ local function download_readme(plugin_path)
 	end
 end
 
--- Attempts to open various README file formats
+-- Function to open various README file formats
 local function open_readme(plugin_name)
 	local plugin_path = plugins_folder .. "/" .. plugin_name
 	local readme_filenames =
@@ -81,7 +83,6 @@ local function open_readme(plugin_name)
 		end
 	end
 
-	-- Attempt to download README.md from the remote Git repository
 	if download_readme(plugin_path) then
 		vim.api.nvim_command("edit " .. plugin_path .. "/README.md")
 	else
@@ -92,13 +93,13 @@ local function open_readme(plugin_name)
 	end
 end
 
--- Main function to handle the Readup command
+-- Function to handle the Readup command
 function M.readup(plugin_string)
 	local plugin_name = parse_plugin_name(plugin_string)
 	open_readme(plugin_name)
 end
 
--- Function to handle Readup command when invoked from the current cursor position
+-- Function to handle Readup command when invoked from the cursor position
 function M.readup_from_cursor()
 	local current_line = vim.api.nvim_get_current_line()
 	local plugin_name = parse_plugin_name(current_line)
@@ -112,7 +113,7 @@ function M.readup_from_cursor()
 	end
 end
 
--- Autocompletion function for plugin names
+-- Function for autocompleting plugin names
 function M.complete_plugin_names(arg_lead, cmd_line, cursor_pos)
 	local plugins = get_installed_plugins()
 	local matches = {}
@@ -124,7 +125,7 @@ function M.complete_plugin_names(arg_lead, cmd_line, cursor_pos)
 	return matches
 end
 
--- Setup function to initialize Neovim commands
+-- Function to set up Neovim commands
 function M.setup()
 	vim.api.nvim_create_user_command("Readup", function(opts)
 		M.readup(opts.args)
