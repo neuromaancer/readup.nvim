@@ -31,26 +31,65 @@ local function parse_plugin_name(str)
 	end
 end
 
+local function get_git_remote_url(plugin_path)
+	local git_config_path = plugin_path .. "/.git/config"
+	local git_config = io.open(git_config_path, "r")
+
+	if git_config then
+		local is_remote_origin_section = false
+		for line in git_config:lines() do
+			if line:match("%[remote \"origin\"%]") then
+				is_remote_origin_section = true
+			elseif is_remote_origin_section and line:match("url =") then
+				git_config:close()
+				return line:match("url = (.+)")
+			elseif line:match("%[") then
+				-- Exit the remote origin section when a new section starts
+				is_remote_origin_section = false
+			end
+		end
+		git_config:close()
+	end
+
+	return nil
+end
+
+local function download_readme(plugin_path)
+	local remote_url = get_git_remote_url(plugin_path)
+
+	if remote_url then
+		local url = remote_url:gsub("%.git$", "") .. "/raw/master/README.md"
+		local download_path = plugin_path .. "/README.md"
+		vim.fn.system("curl -fLo " .. download_path .. " --create-dirs " .. url)
+		return vim.fn.filereadable(download_path) == 1
+	else
+		return false
+	end
+end
+
 -- Attempts to open various README file formats
 local function open_readme(plugin_name)
+	local plugin_path = plugins_folder .. "/" .. plugin_name
 	local readme_filenames =
 		{ "README.md", "README.markdown", "README.txt", "readme.md" }
 
 	for _, filename in ipairs(readme_filenames) do
-		local readme_path = plugins_folder
-			.. "/"
-			.. plugin_name
-			.. "/"
-			.. filename
-		local f = io.open(readme_path, "r")
-		if f then
-			io.close(f)
+		local readme_path = plugin_path .. "/" .. filename
+		if vim.fn.filereadable(readme_path) == 1 then
 			vim.api.nvim_command("edit " .. readme_path)
 			return
 		end
 	end
 
-	vim.notify("README not found for " .. plugin_name, vim.log.levels.ERROR)
+	-- Attempt to download README.md from the remote Git repository
+	if download_readme(plugin_path) then
+		vim.api.nvim_command("edit " .. plugin_path .. "/README.md")
+	else
+		vim.notify(
+			"README not found and could not be downloaded for " .. plugin_name,
+			vim.log.levels.ERROR
+		)
+	end
 end
 
 -- Main function to handle the Readup command
