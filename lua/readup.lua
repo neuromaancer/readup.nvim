@@ -1,24 +1,34 @@
 local M = {}
 
--- Configuration: path to the plugins directory
-local plugins_folder = vim.fn.stdpath("data") .. "/lazy"
+local config = {
+	plugin_manager = "lazy",
+	plugin_paths = {},
+}
 
 -- Function to retrieve a list of installed plugins
 local function get_installed_plugins()
 	local plugins = {}
-	local command = "ls " .. plugins_folder
-	local p, err = io.popen(command)
-	if not p then
-		vim.notify(
-			"Failed to open plugins directory: " .. err,
-			vim.log.levels.ERROR
-		)
-		return plugins
+
+	for _, path in ipairs(config.plugin_paths) do
+		if vim.fn.isdirectory(path) ~= 0 then
+			local p, err = io.popen("ls " .. path)
+			if p then
+				for plugin in p:lines() do
+					table.insert(plugins, plugin)
+				end
+				p:close()
+			else
+				vim.notify(
+					"Failed to list plugins in directory: "
+						.. path
+						.. " - "
+						.. err,
+					vim.log.levels.ERROR
+				)
+			end
+		end
 	end
-	for plugin in p:lines() do
-		table.insert(plugins, plugin)
-	end
-	p:close()
+
 	return plugins
 end
 
@@ -70,22 +80,31 @@ local function download_readme(plugin_path)
 end
 
 -- Function to open various README file formats
+
 local function open_readme(plugin_name)
-	local plugin_path = plugins_folder .. "/" .. plugin_name
 	local readme_filenames =
 		{ "README.md", "README.markdown", "README.txt", "readme.md" }
+	local found = false
+	local plugin_path = nil
 
-	for _, filename in ipairs(readme_filenames) do
-		local readme_path = plugin_path .. "/" .. filename
-		if vim.fn.filereadable(readme_path) == 1 then
-			vim.api.nvim_command("edit " .. readme_path)
-			return
+	for _, base_path in ipairs(config.plugin_paths) do
+		plugin_path = base_path .. "/" .. plugin_name -- Update plugin_path for each base_path
+		for _, filename in ipairs(readme_filenames) do
+			local readme_path = plugin_path .. "/" .. filename
+			if vim.fn.filereadable(readme_path) == 1 then
+				vim.api.nvim_command("edit " .. readme_path)
+				found = true
+				break
+			end
+		end
+		if found then
+			break
 		end
 	end
 
-	if download_readme(plugin_path) then
+	if not found and plugin_path and download_readme(plugin_path) then
 		vim.api.nvim_command("edit " .. plugin_path .. "/README.md")
-	else
+	elseif not found then
 		vim.notify(
 			"README not found and could not be downloaded for " .. plugin_name,
 			vim.log.levels.ERROR
@@ -125,8 +144,7 @@ function M.complete_plugin_names(arg_lead, cmd_line, cursor_pos)
 	return matches
 end
 
--- Function to set up Neovim commands
-function M.setup()
+function M.setup_commands()
 	vim.api.nvim_create_user_command("Readup", function(opts)
 		M.readup(opts.args)
 	end, {
@@ -135,6 +153,23 @@ function M.setup()
 	})
 
 	vim.api.nvim_create_user_command("ReadupCursor", M.readup_from_cursor, {})
+end
+
+function M.setup(user_config)
+	user_config = user_config or {}
+	local manager = user_config.plugin_manager or "lazy" -- Default to 'lazy'
+
+	if manager == "packer" then
+		config.plugin_paths = {
+			vim.fn.stdpath("data") .. "/site/pack/packer/start/",
+			vim.fn.stdpath("data") .. "/site/pack/packer/opt/",
+		}
+	elseif manager == "lazy" then
+		config.plugin_paths = {
+			vim.fn.stdpath("data") .. "/lazy",
+		}
+	end
+	M.setup_commands()
 end
 
 return M

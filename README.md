@@ -34,7 +34,9 @@ Just run :`Readup <plugin_name>`.
 
 ## TODO
 
-- \[ \] Support other plugin managers.
+- \[x\] Support other plugin managers.
+  - \[x\] lazy.nvim
+  - \[x\] packer.nvim
 - \[x\] Get the plugin name from the current cursor.
 - \[x\] if README.md doesn't exist, try README.markdown, README.txt, etc.
 - \[x\] if README.md doesn't exist, try to download it from github.
