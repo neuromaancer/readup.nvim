@@ -1,5 +1,9 @@
 # readup.nvim
 
+## Motivation
+
+Sometimes I want to look up a plugin's README.md without leaving my neovim. Yes, Yes, Yes. I know I can use `:h <plugin_name>` to look up the plugin's help doc. But I think the README.md is more intuitive and easy to understand rather than the help doc. The help doc is somehow tedious 😅.
+
 ## WIP
 
 This is a plugin for me to learn lua and neovim plugin development, so everything is subject to change.
