@@ -24,7 +24,7 @@ Lazy.nvim:
 
 ## Usage
 
-Just run :`Readup \<plugin_name>`.
+Just run :`Readup <plugin_name>`.
 
 - Read plugin from cursor position line and open the README.md: `:ReadupCursor`.
 
@@ -32,7 +32,7 @@ Just run :`Readup \<plugin_name>`.
 
 - \[ \] Support other plugin managers.
 - \[x\] Get the plugin name from the current cursor.
-- \[ \] if README.md doesn't exist, try README.markdown, README.txt, etc.
+- \[x\] if README.md doesn't exist, try README.markdown, README.txt, etc.
 - \[ \] if README.md doesn't exist, try to download it from github.
 - \[ \] Add tests.
 

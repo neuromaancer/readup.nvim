@@ -31,20 +31,26 @@ local function parse_plugin_name(str)
 	end
 end
 
--- Opens the README.md file of a given plugin in a new buffer
+-- Attempts to open various README file formats
 local function open_readme(plugin_name)
-	local readme_path = plugins_folder .. "/" .. plugin_name .. "/README.md"
+	local readme_filenames =
+		{ "README.md", "README.markdown", "README.txt", "readme.md" }
 
-	local f = io.open(readme_path, "r")
-	if f then
-		io.close(f)
-		vim.api.nvim_command("edit " .. readme_path)
-	else
-		vim.notify(
-			"README.md not found for " .. plugin_name,
-			vim.log.levels.ERROR
-		)
+	for _, filename in ipairs(readme_filenames) do
+		local readme_path = plugins_folder
+			.. "/"
+			.. plugin_name
+			.. "/"
+			.. filename
+		local f = io.open(readme_path, "r")
+		if f then
+			io.close(f)
+			vim.api.nvim_command("edit " .. readme_path)
+			return
+		end
 	end
+
+	vim.notify("README not found for " .. plugin_name, vim.log.levels.ERROR)
 end
 
 -- Main function to handle the Readup command
