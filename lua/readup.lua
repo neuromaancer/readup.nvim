@@ -3,6 +3,7 @@ local M = {}
 local config = {
 	plugin_manager = "lazy",
 	plugin_paths = {},
+	float = false, -- Default to false; set to true to open README in a floating window.
 }
 
 -- Function to retrieve a list of installed plugins
@@ -79,20 +80,48 @@ local function download_readme(plugin_path)
 	end
 end
 
+local function open_in_float(readme_path)
+	-- Logic to open readme in a floating window
+	local lines = vim.fn.readfile(readme_path)
+
+	-- Create a new buffer for the floating window
+	local buf = vim.api.nvim_create_buf(false, true)
+	vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+
+	-- Define the floating window size and position
+	local width = math.ceil(vim.o.columns * 0.7)
+	local height = math.ceil(vim.o.lines * 0.7)
+	local col = math.ceil((vim.o.columns - width) / 2)
+	local row = math.ceil((vim.o.lines - height) / 2)
+
+	-- Define window options
+	local opts = {
+		relative = "editor",
+		width = width,
+		height = height,
+		col = col,
+		row = row,
+		style = "minimal",
+		border = "rounded",
+	}
+
+	-- Open the floating window
+	local win = vim.api.nvim_open_win(buf, true, opts)
+end
+
 -- Function to open various README file formats
 
 local function open_readme(plugin_name)
 	local readme_filenames =
 		{ "README.md", "README.markdown", "README.txt", "readme.md" }
 	local found = false
-	local plugin_path = nil
+	local plugin_path, readme_path
 
 	for _, base_path in ipairs(config.plugin_paths) do
-		plugin_path = base_path .. "/" .. plugin_name -- Update plugin_path for each base_path
+		plugin_path = base_path .. "/" .. plugin_name
 		for _, filename in ipairs(readme_filenames) do
-			local readme_path = plugin_path .. "/" .. filename
+			readme_path = plugin_path .. "/" .. filename
 			if vim.fn.filereadable(readme_path) == 1 then
-				vim.api.nvim_command("edit " .. readme_path)
 				found = true
 				break
 			end
@@ -102,13 +131,14 @@ local function open_readme(plugin_name)
 		end
 	end
 
-	if not found and plugin_path and download_readme(plugin_path) then
-		vim.api.nvim_command("edit " .. plugin_path .. "/README.md")
-	elseif not found then
-		vim.notify(
-			"README not found and could not be downloaded for " .. plugin_name,
-			vim.log.levels.ERROR
-		)
+	if found then
+		if config.float then
+			open_in_float(readme_path)
+		else
+			vim.api.nvim_command("edit " .. readme_path)
+		end
+	else
+		vim.notify("README not found for " .. plugin_name, vim.log.levels.ERROR)
 	end
 end
 
@@ -158,6 +188,7 @@ end
 function M.setup(user_config)
 	user_config = user_config or {}
 	local manager = user_config.plugin_manager or "lazy" -- Default to 'lazy'
+	config.float = user_config.float or false
 
 	if manager == "packer" then
 		config.plugin_paths = {

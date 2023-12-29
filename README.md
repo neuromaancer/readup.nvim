@@ -24,7 +24,8 @@ Lazy.nvim:
     cmd = "Readup",
     config = function()
         require("readup").setup({
-        plugin_manager = "lazy" -- or 'packer', etc.
+        plugin_manager = "lazy", -- or 'packer', etc.
+        float = false,  -- Set to true to open READMEs in floating windows
         })
     end
 }
