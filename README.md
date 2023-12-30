@@ -12,7 +12,7 @@ This is a plugin for me to learn lua and neovim plugin development, so everythin
 
 Neovim plugin quickly look up one plugin's `README.md` locally. It's useful when you want to look up a plugin's README.md without leaving your neovim.
 
-Currently, it only supports plugins installed by [lazy.nvim](https://github.com/folke/lazy.nvim).
+~~Currently, it only supports plugins installed by [lazy.nvim](https://github.com/folke/lazy.nvim).~~
 
 ## Installation
 
@@ -26,6 +26,7 @@ Lazy.nvim:
         require("readup").setup({
         plugin_manager = "lazy", -- or 'packer', etc.
         float = false,  -- Set to true to open READMEs in floating windows
+        open_in_browser = false, -- Set to true to open READMEs in browser
         })
     end
 }
@@ -45,6 +46,7 @@ Just run :`Readup <plugin_name>`.
 - \[x\] Get the plugin name from the current cursor.
 - \[x\] if README.md doesn't exist, try README.markdown, README.txt, etc.
 - \[x\] if README.md doesn't exist, try to download it from github.
+- \[x\] Support open README.md in browser.
 - \[ \] Add tests.
 
 ## License

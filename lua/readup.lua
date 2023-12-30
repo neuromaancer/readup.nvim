@@ -4,6 +4,7 @@ local config = {
 	plugin_manager = "lazy",
 	plugin_paths = {},
 	float = false, -- Default to false; set to true to open README in a floating window.
+	open_in_browser = false, -- Default to false
 }
 
 -- Function to retrieve a list of installed plugins
@@ -66,6 +67,19 @@ local function get_git_remote_url(plugin_path)
 	return nil
 end
 
+local function open_readme_in_browser(plugin_name, readme_path)
+	local remote_url = get_git_remote_url(readme_path)
+	if remote_url then
+		local browser_url = remote_url:gsub("%.git$", "")
+			.. "/blob/master/README.md" -- Adjust according to the host's URL format
+		os.execute("xdg-open " .. browser_url) -- Use 'open' instead of 'xdg-open' on macOS
+	else
+		vim.notify(
+			"Cannot find the remote URL for " .. plugin_name,
+			vim.log.levels.ERROR
+		)
+	end
+end
 -- Function to download the README file
 local function download_readme(plugin_path)
 	local remote_url = get_git_remote_url(plugin_path)
@@ -107,6 +121,7 @@ local function open_in_float(readme_path)
 
 	-- Open the floating window
 	local win = vim.api.nvim_open_win(buf, true, opts)
+	vim.wo.conceallevel = 3
 end
 
 -- Function to open various README file formats
@@ -132,10 +147,13 @@ local function open_readme(plugin_name)
 	end
 
 	if found then
-		if config.float then
+		if config.open_in_browser then
+			open_readme_in_browser(plugin_name, readme_path)
+		elseif config.float then
 			open_in_float(readme_path)
 		else
 			vim.api.nvim_command("edit " .. readme_path)
+			vim.wo.conceallevel = 3
 		end
 	else
 		vim.notify("README not found for " .. plugin_name, vim.log.levels.ERROR)
