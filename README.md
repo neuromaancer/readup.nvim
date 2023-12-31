@@ -34,9 +34,11 @@ Lazy.nvim:
 
 ## Usage
 
-Just run :`Readup <plugin_name>`.
+- Just run :`Readup <plugin_name>`.
 
 - Read plugin from cursor position line and open the README.md: `:ReadupCursor`.
+
+- Open in browser: `ReadUpBrower <plugin_name>`.
 
 ## TODO
 
