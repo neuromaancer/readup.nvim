@@ -67,26 +67,43 @@ local function get_git_remote_url(plugin_path)
 	return nil
 end
 
-function M.open_readme_in_browser(plugin_name, readme_path)
-	local remote_url = get_git_remote_url(readme_path)
+local function get_open_command()
+	if vim.fn.has("mac") == 1 then
+		return "open"
+	elseif vim.fn.has("unix") == 1 then
+		return "xdg-open"
+	elseif vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
+		return "start"
+	end
+	return nil -- In case the OS is not recognized
+end
+
+function M.open_readme_in_browser(plugin_name, plugin_path)
+	local remote_url = get_git_remote_url(plugin_path)
 	if remote_url then
 		local browser_url = remote_url:gsub("%.git$", "")
-			.. "/blob/master/readme.md" -- adjust according to the host's url format
-		os.execute("xdg-open " .. browser_url) -- use 'open' instead of 'xdg-open' on macos
+			.. "/blob/master/README.md"
+		local open_cmd = get_open_command()
+		if open_cmd then
+			os.execute(open_cmd .. " " .. browser_url)
+		else
+			vim.notify("Unsupported OS for opening URLs", vim.log.levels.ERROR)
+		end
 	else
 		vim.notify(
-			"cannot find the remote url for " .. plugin_name,
-			vim.log.levels.error
+			"Cannot find the remote URL for " .. plugin_name,
+			vim.log.levels.ERROR
 		)
 	end
 end
+
 -- function to download the readme file
 local function download_readme(plugin_path)
 	local remote_url = get_git_remote_url(plugin_path)
 
 	if remote_url then
-		local url = remote_url:gsub("%.git$", "") .. "/raw/master/readme.md"
-		local download_path = plugin_path .. "/readme.md"
+		local url = remote_url:gsub("%.git$", "") .. "/raw/master/README.md"
+		local download_path = plugin_path .. "/README.md"
 		vim.fn.system("curl -flo " .. download_path .. " --create-dirs " .. url)
 		return vim.fn.filereadable(download_path) == 1
 	else
@@ -120,21 +137,36 @@ local function open_in_float(readme_path)
 	}
 
 	-- open the floating window
-	local win = vim.api.nvim_open_win(buf, true, opts)
+	vim.api.nvim_open_win(buf, true, opts)
 	vim.wo.conceallevel = 3
+end
+
+local function find_plugin_path(plugin_name)
+	for _, base_path in ipairs(config.plugin_paths) do
+		local plugin_path = base_path .. "/" .. plugin_name
+		if vim.fn.isdirectory(plugin_path) ~= 0 then
+			return plugin_path
+		end
+	end
+	vim.notify(
+		"plugin folder not found for " .. plugin_name,
+		vim.log.levels.error
+	)
+	return nil
 end
 
 -- function to open various readme file formats
 local function find_readme_path(plugin_name)
 	local readme_filenames =
-		{ "readme.md", "readme.markdown", "readme.txt", "readme.md" }
-	for _, base_path in ipairs(config.plugin_paths) do
-		local plugin_path = base_path .. "/" .. plugin_name
-		for _, filename in ipairs(readme_filenames) do
-			local readme_path = plugin_path .. "/" .. filename
-			if vim.fn.filereadable(readme_path) == 1 then
-				return readme_path
-			end
+		{ "README.md", "README.markdown", "README.txt", "readme.md" }
+	local plugin_path = find_plugin_path(plugin_name)
+	if plugin_path == nil then
+		return nil
+	end
+	for _, filename in ipairs(readme_filenames) do
+		local readme_path = plugin_path .. "/" .. filename
+		if vim.fn.filereadable(readme_path) == 1 then
+			return readme_path
 		end
 	end
 	vim.notify("readme not found for " .. plugin_name, vim.log.levels.error)
@@ -177,7 +209,7 @@ function M.readup_from_cursor()
 end
 
 -- function for autocompleting plugin names
-function M.complete_plugin_names(arg_lead, cmd_line, cursor_pos)
+function M.complete_plugin_names(arg_lead)
 	local plugins = get_installed_plugins()
 	local matches = {}
 	for _, plugin in ipairs(plugins) do
@@ -189,18 +221,18 @@ function M.complete_plugin_names(arg_lead, cmd_line, cursor_pos)
 end
 
 function M.setup_commands()
-	vim.api.nvim_create_user_command("readup", function(opts)
+	vim.api.nvim_create_user_command("Readup", function(opts)
 		M.readup(opts.args)
 	end, {
 		nargs = 1,
 		complete = M.complete_plugin_names,
 	})
 
-	vim.api.nvim_create_user_command("readupcursor", M.readup_from_cursor, {})
-	vim.api.nvim_create_user_command("readupbrowser", function(opts)
+	vim.api.nvim_create_user_command("ReadupCursor", M.readup_from_cursor, {})
+	vim.api.nvim_create_user_command("ReadupBrowser", function(opts)
 		local plugin_name = parse_plugin_name(opts.args)
-		local readme_path = find_readme_path(plugin_name)
-		M.open_readme_in_browser(plugin_name, readme_path)
+		local plugin_path = find_plugin_path(plugin_name)
+		M.open_readme_in_browser(plugin_name, plugin_path)
 	end, {
 		nargs = 1,
 		complete = M.complete_plugin_names,
