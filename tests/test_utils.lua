@@ -1,5 +1,4 @@
-local utils = require("readup")
-
+local utils = require("init")
 describe("parse_plugin_name", function()
 	it("extracts plugin name from full identifier", function()
 		local result = utils.parse_plugin_name("author/plugin-name")
