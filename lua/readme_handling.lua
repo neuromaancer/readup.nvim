@@ -4,8 +4,16 @@ local config = require("config")
 local readme_handling = {}
 
 function readme_handling.find_readme_path(plugin_name)
-	local readme_filenames =
-		{ "README.md", "README.markdown", "README.txt", "readme.md" }
+	local readme_filenames = {
+		"README.md",
+		"README.markdown",
+		"README.txt",
+		"readme.md",
+		"readme.markdown",
+		"readme.txt",
+		"README",
+		"readme",
+	}
 	for _, base_path in ipairs(config.plugin_paths) do
 		local plugin_path = base_path .. "/" .. plugin_name
 		for _, filename in ipairs(readme_filenames) do
