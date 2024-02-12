@@ -19,7 +19,7 @@ function commands.setup_commands()
 		local plugin_name = utils.parse_plugin_name(opts.args)
 		local readme_path = readme_handling.find_readme_path(plugin_name)
 		if readme_path then
-			readme_handling.open_readme_in_browser(plugin_name, readme_path)
+			readme_handling.open_readme_in_browser(plugin_name)
 		end
 	end, { nargs = 1, complete = utils.complete_plugin_names })
 end

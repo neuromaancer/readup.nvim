@@ -1,4 +1,5 @@
-pl_manager = require("plugin_management")
+local pl_manager = require("plugin_management")
+local config = require("config")
 local utils = {}
 
 -- Parses the plugin name from a string
@@ -10,10 +11,25 @@ function utils.parse_plugin_name(str)
 	end
 end
 
--- Gets the remote URL from the .git/config file
+function utils.find_plugin_path(plugin_name)
+	for _, base_path in ipairs(config.plugin_paths) do
+		local plugin_path = base_path .. "/" .. plugin_name
+		if vim.fn.isdirectory(plugin_path) ~= 0 then
+			return plugin_path
+		end
+	end
+	vim.notify(
+		"plugin folder not found for " .. plugin_name,
+		vim.log.levels.error
+	)
+	return nil
+end
+
+-- function to get the remote url from the .git/config file
 function utils.get_git_remote_url(plugin_path)
 	local git_config_path = plugin_path .. "/.git/config"
 	local git_config = io.open(git_config_path, "r")
+
 	if git_config then
 		local is_remote_origin_section = false
 		for line in git_config:lines() do
@@ -28,6 +44,7 @@ function utils.get_git_remote_url(plugin_path)
 		end
 		git_config:close()
 	end
+
 	return nil
 end
 

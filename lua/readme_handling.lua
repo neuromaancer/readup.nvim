@@ -14,13 +14,11 @@ function readme_handling.find_readme_path(plugin_name)
 		"README",
 		"readme",
 	}
-	for _, base_path in ipairs(config.plugin_paths) do
-		local plugin_path = base_path .. "/" .. plugin_name
-		for _, filename in ipairs(readme_filenames) do
-			local readme_path = plugin_path .. "/" .. filename
-			if vim.fn.filereadable(readme_path) == 1 then
-				return readme_path
-			end
+	local plugin_path = utils.find_plugin_path(plugin_name)
+	for _, filename in ipairs(readme_filenames) do
+		local readme_path = plugin_path .. "/" .. filename
+		if vim.fn.filereadable(readme_path) == 1 then
+			return readme_path
 		end
 	end
 	vim.notify("README not found for " .. plugin_name, vim.log.levels.ERROR)
@@ -46,15 +44,23 @@ function readme_handling.open_in_float(readme_path)
 	vim.wo.conceallevel = 3
 end
 
-function readme_handling.open_readme_in_browser(plugin_name, readme_path)
-	local open_cmd = utils.get_open_command()
-	if open_cmd then
-		local browser_url = utils
-			.get_git_remote_url(readme_path)
-			:gsub("%.git$", "") .. "/blob/master/README.md"
-		os.execute(open_cmd .. " " .. browser_url)
+function readme_handling.open_readme_in_browser(plugin_name)
+	local plugin_path = utils.find_plugin_path(plugin_name)
+	local remote_url = utils.get_git_remote_url(plugin_path)
+	if remote_url then
+		local browser_url = remote_url:gsub("%.git$", "")
+			.. "/blob/master/README.md"
+		local open_cmd = utils.get_open_command()
+		if open_cmd then
+			os.execute(open_cmd .. " " .. browser_url)
+		else
+			vim.notify("Unsupported OS for opening URLs", vim.log.levels.ERROR)
+		end
 	else
-		vim.notify("Unsupported OS for opening URLs", vim.log.levels.ERROR)
+		vim.notify(
+			"Cannot find the remote URL for " .. plugin_name,
+			vim.log.levels.ERROR
+		)
 	end
 end
 
@@ -62,7 +68,7 @@ function readme_handling.open_readme(plugin_name)
 	local readme_path = readme_handling.find_readme_path(plugin_name)
 	if readme_path then
 		if config.open_in_browser then
-			readme_handling.open_readme_in_browser(plugin_name, readme_path)
+			readme_handling.open_readme_in_browser(plugin_name)
 		elseif config.float then
 			readme_handling.open_in_float(readme_path)
 		else
