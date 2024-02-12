@@ -50,4 +50,20 @@ function readme_handling.open_readme_in_browser(plugin_name, readme_path)
 	end
 end
 
+function readme_handling.open_readme(plugin_name)
+	local readme_path = readme_handling.find_readme_path(plugin_name)
+	if readme_path then
+		if config.open_in_browser then
+			readme_handling.open_readme_in_browser(plugin_name, readme_path)
+		elseif config.float then
+			readme_handling.open_in_float(readme_path)
+		else
+			vim.api.nvim_command("edit " .. readme_path)
+			vim.wo.conceallevel = 3
+		end
+	else
+		vim.notify("readme not found for " .. plugin_name, vim.log.levels.error)
+	end
+end
+
 return readme_handling
