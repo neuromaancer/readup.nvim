@@ -11,6 +11,8 @@ function commands.setup_commands()
 
 	vim.api.nvim_create_user_command("ReadupCursor", function()
 		local current_line = vim.api.nvim_get_current_line()
+		print("current_line:")
+		print(current_line)
 		local plugin_name = utils.parse_plugin_name(current_line)
 		readme_handling.open_readme(plugin_name)
 	end, {})

@@ -5,9 +5,6 @@ local M = {}
 
 function M.setup(user_config)
 	user_config = config.setup(user_config)
-	for key, value in pairs(user_config) do
-		print(key, value)
-	end
 	local manager = user_config.plugin_manager or "lazy" -- default to 'lazy'
 	config.float = user_config.float or false
 

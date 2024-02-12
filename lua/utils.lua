@@ -4,11 +4,8 @@ local utils = {}
 
 -- Parses the plugin name from a string
 function utils.parse_plugin_name(str)
-	if str:find("/") then
-		return str:match("([^/]+)/([^/]+)$")
-	else
-		return str
-	end
+	local plugin_name = str:match("\".-/(.-)\"")
+	return plugin_name
 end
 
 function utils.find_plugin_path(plugin_name)
