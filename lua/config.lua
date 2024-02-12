@@ -12,6 +12,7 @@ function config.setup(user_config)
 			config[key] = value
 		end
 	end
+	return config
 end
 
 return config

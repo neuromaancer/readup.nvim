@@ -26,20 +26,31 @@ function readme_handling.find_readme_path(plugin_name)
 end
 
 function readme_handling.open_in_float(readme_path)
+	-- logic to open readme in a floating window
 	local lines = vim.fn.readfile(readme_path)
+
+	-- create a new buffer for the floating window
 	local buf = vim.api.nvim_create_buf(false, true)
 	vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+
+	-- define the floating window size and position
 	local width = math.ceil(vim.o.columns * 0.7)
 	local height = math.ceil(vim.o.lines * 0.7)
+	local col = math.ceil((vim.o.columns - width) / 2)
+	local row = math.ceil((vim.o.lines - height) / 2)
+
+	-- define window options
 	local opts = {
 		relative = "editor",
 		width = width,
 		height = height,
-		col = math.ceil((vim.o.columns - width) / 2),
-		row = math.ceil((vim.o.lines - height) / 2),
+		col = col,
+		row = row,
 		style = "minimal",
 		border = "rounded",
 	}
+
+	-- open the floating window
 	vim.api.nvim_open_win(buf, true, opts)
 	vim.wo.conceallevel = 3
 end
