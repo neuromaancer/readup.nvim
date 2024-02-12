@@ -46,7 +46,6 @@ function readme_handling.open_in_float(readme_path)
 		height = height,
 		col = col,
 		row = row,
-		style = "minimal",
 		border = "rounded",
 	}
 
