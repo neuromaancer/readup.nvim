@@ -1,3 +1,4 @@
+pl_manager = require("plugin_management")
 local utils = {}
 
 -- Parses the plugin name from a string
@@ -28,6 +29,18 @@ function utils.get_git_remote_url(plugin_path)
 		git_config:close()
 	end
 	return nil
+end
+
+-- function for autocompleting plugin names
+function utils.complete_plugin_names(arg_lead)
+	local plugins = pl_manager.get_installed_plugins()
+	local matches = {}
+	for _, plugin in ipairs(plugins) do
+		if plugin:find(arg_lead) == 1 then
+			table.insert(matches, plugin)
+		end
+	end
+	return matches
 end
 
 -- Determines the OS-specific command to open URLs
