@@ -47,11 +47,22 @@ function readme_handling.open_in_float(readme_path)
 		col = col,
 		row = row,
 		border = "rounded",
+    style = "minimal",
+    border = "single",
+    title = "Readup",
+    title_pos = "left",
 	}
 
 	-- open the floating window
 	vim.api.nvim_open_win(buf, true, opts)
 	vim.wo.conceallevel = 3
+
+  vim.api.nvim_set_option_value("filetype", "readup", { buf = buf })
+  vim.api.nvim_buf_set_name(buf, "readup")
+  vim.api.nvim_set_option_value("readonly", true, { buf = buf })
+  vim.api.nvim_set_option_value("bufhidden", "delete", { buf = buf })
+  vim.api.nvim_set_option_value("buftype", "nofile", { buf = buf })
+  vim.api.nvim_set_option_value("modifiable", false, { buf = buf })
 end
 
 function readme_handling.open_readme_in_browser(plugin_name)
